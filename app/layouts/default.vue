@@ -2,7 +2,7 @@
   <div class="site-wrap">
     <TheNav />
     <main class="site-main"><slot /></main>
-    
+    <TheFooter />
   </div>
 </template>
 <style scoped>
