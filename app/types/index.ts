@@ -1,3 +1,4 @@
+// Product Types
 export type ProductType = 'flowers' | 'money_bouquet' | 'chocolate_bundle' | 'handmade_flower' | 'others'
 export type DeliveryType = 'standard' | 'pickup'
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded'
@@ -11,16 +12,6 @@ export interface Category {
   sort_order: number
   is_active: boolean
   created_at: string
-}
-
-export interface Profile {
-  id: string
-  email: string
-  full_name: string | null
-  phone: string | null
-  role: 'customer' | 'admin'
-  created_at: string
-  updated_at: string
 }
 
 export interface Product {
@@ -39,19 +30,18 @@ export interface Product {
   stock_qty: number
   delivery_types: DeliveryType[]
   tags: string[]
-
+ 
   money_min_amount: number | null   
   money_max_amount: number | null   
   money_step: number | null         
-  
+
   metadata: Record<string, unknown>
   created_at: string
   updated_at: string
-  
+
  categories?: Category
   variants?: ProductVariant[]
 }
-
 
 export interface ProductVariant {
   id: string
@@ -61,3 +51,45 @@ export interface ProductVariant {
   description: string | null
   is_active: boolean
 }
+
+
+
+
+
+
+export interface Profile {
+  id: string
+  email: string
+  full_name: string | null
+  phone: string | null
+  role: 'customer' | 'admin'
+  created_at: string
+  updated_at: string
+}
+
+
+export interface DeliveryOption {
+  id: string
+  name: string
+  type: DeliveryType
+  description: string
+  price: number
+  estimated_days: string
+  is_active: boolean
+}
+
+
+export interface CartItem {
+  product: Product
+  variant?: ProductVariant
+  quantity: number
+  deliveryOptionId?: string
+  deliveryOption?: DeliveryOption
+  deliveryDate?: string
+  giftMessage?: string
+  recipientName?: string
+  recipientPhone?: string
+ 
+  moneyAmount?: number
+}
+
