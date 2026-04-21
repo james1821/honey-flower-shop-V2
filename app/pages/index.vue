@@ -98,11 +98,11 @@ featured.value = featData.value ?? []
 <style scoped>
 .hero { position:relative; overflow:hidden; min-height:560px; display:flex; align-items:center; }
 .hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#eef5f0 0%,#fdf9f4 50%,#fdf0f1 100%); }
-.hero-inner { position:relative; display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; padding:80px 24px; }
+.hero-inner { position:relative; display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; padding:8px 24px; }
 @media(max-width:768px){ .hero-inner{ grid-template-columns:1fr; padding:60px 24px; } }
-.hero-eyebrow { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--green); }
+.hero-eyebrow { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--purple); }
 .hero-title { font-size:clamp(40px,6vw,68px); margin:12px 0; color:var(--charcoal); }
-.hero-title em { font-style:italic; color:var(--green); }
+.hero-title em { font-style:italic; color:var(--purple); }
 .hero-sub { font-size:17px; color:var(--gray); line-height:1.7; max-width:460px; margin-bottom:28px; }
 .hero-actions { display:flex; gap:12px; flex-wrap:wrap; }
 .hero-img img { border-radius:var(--radius-xl); box-shadow:var(--shadow-lg); width:100%; aspect-ratio:1; object-fit:cover; }

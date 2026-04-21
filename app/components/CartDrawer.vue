@@ -74,7 +74,7 @@ const { fmt } = useCurrency()
 }
 .cart-head h3 { font-size:20px; display:flex; align-items:center; gap:10px; }
 .count-pill {
-  background:var(--green); color:#fff; font-size:12px; font-weight:700;
+  background:var(--purple); color:#fff; font-size:12px; font-weight:700;
   width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
 }
 .cart-empty {
@@ -103,7 +103,7 @@ const { fmt } = useCurrency()
 }
 .qty-ctrl button:hover { background:var(--cream); }
 .qty-ctrl span { font-size:14px; font-weight:600; min-width:20px; text-align:center; }
-.item-price { font-size:14px; font-weight:600; color:var(--green); }
+.item-price { font-size:14px; font-weight:600; color:var(--purple); }
 .remove-btn {
   position:absolute; top:8px; right:8px; background:none; border:none;
   font-size:12px; color:var(--gray-light); padding:4px; cursor:pointer;

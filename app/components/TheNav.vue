@@ -131,7 +131,7 @@ onClickOutside(userRef, () => { menuOpen.value = false })
   font-size: 13.5px; color: var(--gray);
   transition: all var(--t) var(--ease);
 }
-.nav-link:hover { background: var(--green-pale); color: var(--green); }
+.nav-link:hover { background: var(--purple-pale); color: var(--purple); }
 .nav-right { display:flex; align-items:center; gap:10px; margin-left:auto; }
 .cart-trigger {
   position:relative; background:none; border:none; width:40px; height:40px;
@@ -140,7 +140,7 @@ onClickOutside(userRef, () => { menuOpen.value = false })
 }
 .cart-trigger:hover { background: var(--cream-dark); }
 .cart-badge {
-  position:absolute; top:2px; right:2px; background:var(--green); color:#fff;
+  position:absolute; top:2px; right:2px; background:var(--purple); color:#fff;
   font-size:10px; font-weight:700; width:17px; height:17px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
 }
@@ -148,8 +148,8 @@ onClickOutside(userRef, () => { menuOpen.value = false })
 .user-wrap { position:relative; }
 .user-btn { display:flex; align-items:center; gap:6px; background:none; border:none; cursor:pointer; }
 .avatar {
-  width:34px; height:34px; border-radius:50%; background:var(--green-pale);
-  color:var(--green); font-size:12px; font-weight:700;
+  width:34px; height:34px; border-radius:50%; background:var(--purple-pale);
+  color:var(--purple); font-size:12px; font-weight:700;
   display:flex; align-items:center; justify-content:center;
 }
 .user-menu {
