@@ -3,6 +3,7 @@
     <TheNav />
     <main class="site-main"><slot /></main>
     <TheFooter />
+     <CartDrawer />
   </div>
 </template>
 <style scoped>
