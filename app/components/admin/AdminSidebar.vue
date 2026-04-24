@@ -41,6 +41,13 @@
   </svg>
   Gallery
 </NuxtLink>
+<NuxtLink to="/admin/popup" class="nav-item" active-class="active">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <path d="M9 3v18M3 9h6"/>
+  </svg>
+  Popup Banner
+</NuxtLink>
     </nav>
 
     <div class="sidebar-footer">
