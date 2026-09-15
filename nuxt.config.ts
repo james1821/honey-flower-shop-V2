@@ -1,10 +1,27 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ['@nuxtjs/supabase', '@pinia/nuxt', '@vueuse/nuxt'],
-  supabase: { redirect: false },
+  modules: ['nuxt-vuefire', '@pinia/nuxt', '@vueuse/nuxt'],
+
+  vuefire: {
+    // Firebase project config (safe to expose client-side — these are public identifiers,
+    // access is controlled by Firestore/Storage security rules, not by hiding these values).
+    config: {
+      apiKey: process.env.FIREBASE_API_KEY,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.FIREBASE_APP_ID,
+    },
+    auth: {
+      enabled: true,
+      // sessionCookie is left off (default) so no Firebase Admin service account is required.
+      // Auth state is handled client-side via VueFire, same trust model the app already used with Supabase's anon key.
+    },
+  },
+
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
     public: {
       appName: 'Handmade By Honey',
       currencySymbol: '₱',

@@ -1,3 +1,9 @@
+import {
+  collection, query, where, orderBy, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc,
+  serverTimestamp, writeBatch,
+} from 'firebase/firestore'
+import { docToGalleryItem } from '~/utils/firestore-mappers'
+
 export interface GalleryItem {
   id: string
   type: 'work' | 'customer'
@@ -11,57 +17,59 @@ export interface GalleryItem {
 }
 
 export function useGallery() {
-  const supabase = useSupabaseClient()
+  const db = useFirestore()
 
   async function getGalleryItems(type?: 'work' | 'customer') {
-    let q = supabase
-      .from('gallery_items')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true })
-
-    if (type) q = q.eq('type', type)
-
-    const { data, error } = await q
-    return { data: data as GalleryItem[] | null, error }
+    try {
+      const constraints = [where('is_active', '==', true)]
+      if (type) constraints.push(where('type', '==', type))
+      const q = query(collection(db, 'gallery_items'), ...constraints, orderBy('sort_order', 'asc'))
+      const snap = await getDocs(q)
+      return { data: snap.docs.map(docToGalleryItem), error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function adminGetAllGallery() {
-    const { data, error } = await supabase
-      .from('gallery_items')
-      .select('*')
-      .order('sort_order', { ascending: true })
-    return { data: data as GalleryItem[] | null, error }
+    try {
+      const q = query(collection(db, 'gallery_items'), orderBy('sort_order', 'asc'))
+      const snap = await getDocs(q)
+      return { data: snap.docs.map(docToGalleryItem), error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function adminUpsertGalleryItem(item: Partial<GalleryItem>) {
-    if (item.id) {
-      const { data, error } = await supabase
-        .from('gallery_items')
-        .update(item)
-        .eq('id', item.id)
-        .select()
-        .maybeSingle()
-      return { data, error }
+    try {
+      const { id, ...rest } = item
+      if (id) {
+        const ref = doc(db, 'gallery_items', id)
+        await updateDoc(ref, { ...rest, updated_at: serverTimestamp() })
+        const snap = await getDoc(ref)
+        return { data: snap.exists() ? docToGalleryItem(snap) : null, error: null }
+      }
+      const ref = await addDoc(collection(db, 'gallery_items'), { ...rest, created_at: serverTimestamp() })
+      return { data: { id: ref.id, ...rest } as GalleryItem, error: null }
+    } catch (error: any) {
+      return { data: null, error: { message: error?.message ?? String(error) } }
     }
-    const { data, error } = await supabase
-      .from('gallery_items')
-      .insert(item)
-      .select()
-      .maybeSingle()
-    return { data, error }
   }
 
   async function adminDeleteGalleryItem(id: string) {
-    const { error } = await supabase.from('gallery_items').delete().eq('id', id)
-    return { error }
+    try {
+      await deleteDoc(doc(db, 'gallery_items', id))
+      return { error: null }
+    } catch (error: any) {
+      return { error: { message: error?.message ?? String(error) } }
+    }
   }
 
   async function adminReorder(items: { id: string; sort_order: number }[]) {
-    const updates = items.map(item =>
-      supabase.from('gallery_items').update({ sort_order: item.sort_order }).eq('id', item.id)
-    )
-    await Promise.all(updates)
+    const batch = writeBatch(db)
+    items.forEach(item => batch.update(doc(db, 'gallery_items', item.id), { sort_order: item.sort_order }))
+    await batch.commit()
   }
 
   return {

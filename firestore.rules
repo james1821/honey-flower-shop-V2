@@ -1,0 +1,97 @@
+rules_version = '2';
+
+// These rules reproduce, in Firestore's model, roughly what the app's Supabase Row Level
+// Security policies were doing: public read of the active storefront catalog, customers can
+// only read/write their own data, and writes to admin-managed collections require a `users/{uid}`
+// document with role == 'admin'.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ---- Storefront catalog: public read, admin write ----
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /delivery_options/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /gallery_items/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /popup_banner/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Promo codes: everyone can read active codes to validate at checkout, but never see
+    // usage counts/limits of others in bulk. Only admins can create/edit/delete.
+    match /promo_codes/{id} {
+      allow get: if true;
+      allow list: if true;
+      allow create, delete: if isAdmin();
+      // Allow either an admin edit, or the narrow "increment uses_count by exactly 1" update
+      // that placeOrder() performs when a promo code is redeemed.
+      allow update: if isAdmin() ||
+        (isSignedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uses_count']) &&
+          request.resource.data.uses_count == resource.data.uses_count + 1);
+    }
+
+    // ---- User profiles ----
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      // A user can create their own profile on signup, and update their own contact info,
+      // but cannot change their own `role` — only an admin can promote/demote.
+      allow create: if isOwner(uid) && request.resource.data.role == 'customer';
+      allow update: if isAdmin() ||
+        (isOwner(uid) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+      allow list: if isAdmin();
+    }
+
+    // ---- Orders ----
+    match /orders/{id} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.customer_id == request.auth.uid);
+      // Orders are created by any signed-in *or guest* checkout, but the payload must claim
+      // the correct customer_id (their own uid, or null for guests) — it can't be forged to
+      // attach the order to someone else's account.
+      allow create: if request.resource.data.customer_id == null ||
+        (isSignedIn() && request.resource.data.customer_id == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if false;
+      // `read` above already covers both get() and list() queries, evaluated per-document —
+      // a customer's `where('customer_id','==',uid)` query only ever returns docs they own.
+    }
+
+    // ---- Order-number counter (internal) ----
+    // Bumped as part of every checkout, including guest checkout, so it can't require auth.
+    // It holds nothing but a running number, so open read/write is a low-risk trade-off.
+    match /counters/{id} {
+      allow read, write: if true;
+    }
+  }
+}

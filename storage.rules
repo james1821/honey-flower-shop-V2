@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Product photos, gallery photos, and the popup banner are all public images shown on the
+// storefront, so anyone can read them. Only admins can upload/replace/delete them, and every
+// upload is capped at 8MB (client-side compression already brings images well under that —
+// this is a backstop against someone bypassing the UI and uploading a huge raw file).
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /products/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size < 8 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+
+    match /gallery/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size < 8 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+
+    match /popup/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size < 8 * 1024 * 1024 && request.resource.contentType.matches('image/.*');
+    }
+
+    // Deny everything else by default.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
