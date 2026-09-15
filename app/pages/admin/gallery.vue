@@ -64,15 +64,9 @@
         </div>
         <div class="modal-body" style="display:flex;flex-direction:column;gap:16px">
 
-          
-          <div v-if="form.image_url" class="img-preview">
-            <img :src="form.image_url" alt="Preview" />
-          </div>
-
           <div class="form-group">
-            <label class="form-label">Image URL *</label>
-            <input v-model="form.image_url" class="form-input" placeholder="https://…" />
-            <p class="form-hint">Paste a direct image URL (Unsplash, your CDN, Google Drive public link, etc.)</p>
+            <label class="form-label">Photo *</label>
+            <AdminImageUploader v-model="form.image_url" folder="gallery" />
           </div>
 
           <div class="form-row">

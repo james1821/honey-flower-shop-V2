@@ -1,3 +1,6 @@
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { docToPopup } from '~/utils/firestore-mappers'
+
 export interface PopupBanner {
   id: string
   image_url: string
@@ -6,47 +9,46 @@ export interface PopupBanner {
   updated_at: string
 }
 
+// The site only ever shows one popup banner, so it lives at a fixed document id
+// instead of a full collection — simpler than Supabase's "one row" table.
+const POPUP_DOC_ID = 'main'
+
 export function usePopup() {
-  const supabase = useSupabaseClient()
+  const db = useFirestore()
   const SESSION_KEY = 'florette_popup_seen'
 
   async function getPopup() {
-    const { data, error } = await supabase
-      .from('popup_banner')
-      .select('*')
-      .eq('is_active', true)
-      .maybeSingle()
-    return { data: data as PopupBanner | null, error }
+    try {
+      const snap = await getDoc(doc(db, 'popup_banner', POPUP_DOC_ID))
+      if (!snap.exists() || !snap.data().is_active) return { data: null, error: null }
+      return { data: docToPopup(snap), error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function adminGetPopup() {
-    const { data, error } = await supabase
-      .from('popup_banner')
-      .select('*')
-      .maybeSingle()
-    return { data: data as PopupBanner | null, error }
+    try {
+      const snap = await getDoc(doc(db, 'popup_banner', POPUP_DOC_ID))
+      if (!snap.exists()) return { data: null, error: null }
+      return { data: docToPopup(snap), error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function adminSavePopup(payload: Partial<PopupBanner> & { id?: string }) {
-    if (payload.id) {
-      const { data, error } = await supabase
-        .from('popup_banner')
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq('id', payload.id)
-        .select()
-        .maybeSingle()
-      return { data, error }
+    try {
+      const { id, ...rest } = payload
+      const ref = doc(db, 'popup_banner', POPUP_DOC_ID)
+      await setDoc(ref, { ...rest, updated_at: serverTimestamp() }, { merge: true })
+      const snap = await getDoc(ref)
+      return { data: docToPopup(snap), error: null }
+    } catch (error: any) {
+      return { data: null, error: { message: error?.message ?? String(error) } }
     }
-    // Insert if no row exists yet
-    const { data, error } = await supabase
-      .from('popup_banner')
-      .insert({ ...payload, updated_at: new Date().toISOString() })
-      .select()
-      .maybeSingle()
-    return { data, error }
   }
 
-  // Session helpers
   function hasSeenPopup(): boolean {
     if (typeof sessionStorage === 'undefined') return false
     return sessionStorage.getItem(SESSION_KEY) === '1'
@@ -54,7 +56,7 @@ export function usePopup() {
 
   function markPopupSeen() {
     if (typeof sessionStorage === 'undefined') return
-    sessionStorage.setItem(SESSION_KEY, '1') // Mark as seen
+    sessionStorage.setItem(SESSION_KEY, '1')
   }
 
   return { getPopup, adminGetPopup, adminSavePopup, hasSeenPopup, markPopupSeen }

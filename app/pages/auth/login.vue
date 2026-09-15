@@ -27,7 +27,9 @@
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
+import { signInWithEmailAndPassword } from 'firebase/auth'
+
+const auth = useFirebaseAuth()!
 const { success } = useToast()
 const route = useRoute()
 
@@ -35,11 +37,27 @@ const email = ref(''), password = ref(''), err = ref(''), loading = ref(false)
 
 async function login() {
   loading.value = true; err.value = ''
-  const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: password.value })
-  loading.value = false
-  if (error) { err.value = error.message; return }
-  success('Welcome back!')
-  navigateTo((route.query.redirect as string) || '/')
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value)
+    success('Welcome back!')
+    navigateTo((route.query.redirect as string) || '/')
+  } catch (e: any) {
+    err.value = friendlyAuthError(e?.code)
+  } finally {
+    loading.value = false
+  }
+}
+
+function friendlyAuthError(code?: string) {
+  switch (code) {
+    case 'auth/invalid-email': return 'That email address looks invalid.'
+    case 'auth/user-disabled': return 'This account has been disabled.'
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential': return 'Incorrect email or password.'
+    case 'auth/too-many-requests': return 'Too many attempts. Please try again later.'
+    default: return 'Could not sign in. Please try again.'
+  }
 }
 </script>
 

@@ -31,20 +31,48 @@
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+
+const auth = useFirebaseAuth()!
+const db = useFirestore()
 const { success } = useToast()
 const name = ref(''), email = ref(''), password = ref(''), err = ref(''), loading = ref(false)
 
 async function register() {
   loading.value = true; err.value = ''
-  const { error } = await supabase.auth.signUp({
-    email: email.value, password: password.value,
-    options: { data: { full_name: name.value } }
-  })
-  loading.value = false
-  if (error) { err.value = error.message; return }
-  success('Account created! Please check your email to verify.')
-  navigateTo('/auth/login')
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.value, password.value)
+    await updateProfile(cred.user, { displayName: name.value })
+
+    // Firebase has no server-side trigger like Supabase's `on auth user created`, so the
+    // customer profile document is created client-side right after signup.
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email: email.value,
+      full_name: name.value,
+      phone: null,
+      role: 'customer',
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+
+    await sendEmailVerification(cred.user)
+    success('Account created! Please check your email to verify.')
+    navigateTo('/auth/login')
+  } catch (e: any) {
+    err.value = friendlyAuthError(e?.code)
+  } finally {
+    loading.value = false
+  }
+}
+
+function friendlyAuthError(code?: string) {
+  switch (code) {
+    case 'auth/email-already-in-use': return 'An account with this email already exists.'
+    case 'auth/invalid-email': return 'That email address looks invalid.'
+    case 'auth/weak-password': return 'Password should be at least 8 characters.'
+    default: return 'Could not create your account. Please try again.'
+  }
 }
 </script>
 
