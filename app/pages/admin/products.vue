@@ -18,7 +18,7 @@
                 <img :src="p.images[0]" :alt="p.name" class="p-thumb" />
                 <div>
                   <p class="p-name">{{ p.name }}</p>
-                <p class="p-cat">{{ p.categories?.name }}</p>
+                <p class="p-cat">{{ p.category?.name }}</p>
                 </div>
               </div>
             </td>
@@ -153,8 +153,8 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Image URLs (one per line)</label>
-            <textarea v-model="imagesText" class="form-textarea" rows="3" placeholder="https://…"></textarea>
+            <label class="form-label">Product Photos</label>
+            <AdminImageUploader v-model="form.images" multiple :max="5" folder="products" />
           </div>
 
           <div style="display:flex;gap:12px">
@@ -207,11 +207,6 @@ const form = reactive<Partial<Product> & { id?: string }>({
   money_min_amount: 500, money_max_amount: 20000, money_step: 500,
 })
 
-const imagesText = computed({
-  get: () => (form.images ?? []).join('\n'),
-  set: (v: string) => { form.images = v.split('\n').map(s => s.trim()).filter(Boolean) },
-})
-
 async function load() {
   loading.value = true
   const { data, count } = await adminGetProducts(page.value, pageSize, search.value)
@@ -234,7 +229,6 @@ function openNew() {
     images: [], is_active: true, is_featured: false, stock_qty: 0,
     delivery_types: ['standard'], money_min_amount: 500, money_max_amount: 20000, money_step: 500,
   })
-  imagesText.value = ''
   formErr.value = ''
   showModal.value = true
 }
@@ -261,7 +255,6 @@ function editProduct(p: Product) {
   money_max_amount: p.money_max_amount,
   money_step: p.money_step,
 })
-  imagesText.value = (p.images ?? []).join('\n')
   formErr.value = ''
   showModal.value = true
 }
@@ -297,6 +290,7 @@ async function confirmDelete(p: Product) {
 
   if (err) {
     error('Delete failed: ' + err.message)
+    console.error(err)
     return
   }
 

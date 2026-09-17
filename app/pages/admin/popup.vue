@@ -42,13 +42,9 @@
 
     
         <div class="form-group">
-          <label class="form-label">Popup Image URL *</label>
-          <input
-            v-model="form.image_url"
-            class="form-input"
-            placeholder="https://your-image-url.com/promo.jpg"
-          />
-          <p class="form-hint">Use a high-quality image. Recommended size: 540×400px or wider. Supports any public image URL.</p>
+          <label class="form-label">Popup Image *</label>
+          <AdminImageUploader v-model="form.image_url" folder="popup" />
+          <p class="form-hint">Use a high-quality image. Recommended size: 540×400px or wider. It's compressed automatically on upload.</p>
         </div>
 
       

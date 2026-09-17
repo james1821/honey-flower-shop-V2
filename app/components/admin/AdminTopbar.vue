@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const user = useSupabaseUser()
+const user = useCurrentUser()
 
 const titleMap: Record<string, string> = {
   '/admin': 'Dashboard',

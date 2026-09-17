@@ -1,13 +1,31 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ['@nuxtjs/supabase', '@pinia/nuxt', '@vueuse/nuxt'],
-  supabase: { redirect: false },
+  modules: ['nuxt-vuefire', '@pinia/nuxt', '@vueuse/nuxt'],
+
+  // SPA mode: no server/api routes, avoids needing a Firebase Admin service account
+  ssr: false,
+
+  vuefire: {
+    config: {
+      apiKey: process.env.FIREBASE_API_KEY,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.FIREBASE_APP_ID,
+    },
+    auth: {
+      enabled: true,
+    },
+  },
+
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
     public: {
       appName: 'Handmade By Honey',
       currencySymbol: '₱',
+      // Cloudinary image hosting
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      cloudinaryUploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET,
     },
   },
   typescript: { strict: true },

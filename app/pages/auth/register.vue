@@ -25,26 +25,79 @@
         </button>
       </form>
 
+      <div class="auth-divider"><span>or</span></div>
+
+      <button type="button" class="btn btn-google" :disabled="googleLoading" @click="registerWithGoogle">
+        <span v-if="googleLoading" class="spinner"></span>
+        <template v-else>
+          <GoogleIcon />
+          Continue with Google
+        </template>
+      </button>
+
       <p class="auth-footer">Already have an account? <NuxtLink to="/auth/login">Sign in</NuxtLink></p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
-const { success } = useToast()
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+
+const auth = useFirebaseAuth()!
+const db = useFirestore()
+const { success, error: toastError } = useToast()
+const { signInWithGoogle, friendlyGoogleAuthError } = useGoogleAuth()
 const name = ref(''), email = ref(''), password = ref(''), err = ref(''), loading = ref(false)
+const googleLoading = ref(false)
 
 async function register() {
   loading.value = true; err.value = ''
-  const { error } = await supabase.auth.signUp({
-    email: email.value, password: password.value,
-    options: { data: { full_name: name.value } }
-  })
-  loading.value = false
-  if (error) { err.value = error.message; return }
-  success('Account created! Please check your email to verify.')
-  navigateTo('/auth/login')
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.value, password.value)
+    await updateProfile(cred.user, { displayName: name.value })
+
+    // create profile doc right after signup
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email: email.value,
+      full_name: name.value,
+      phone: null,
+      role: 'customer',
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+
+    await sendEmailVerification(cred.user)
+    success('Account created! Please check your email to verify.')
+    navigateTo('/auth/login')
+  } catch (e: any) {
+    err.value = friendlyAuthError(e?.code)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function registerWithGoogle() {
+  googleLoading.value = true; err.value = ''
+  try {
+    await signInWithGoogle()
+    success('Welcome!')
+    navigateTo('/')
+  } catch (e: any) {
+    const message = friendlyGoogleAuthError(e?.code)
+    if (message) toastError(message)
+  } finally {
+    googleLoading.value = false
+  }
+}
+
+function friendlyAuthError(code?: string) {
+  switch (code) {
+    case 'auth/email-already-in-use': return 'An account with this email already exists.'
+    case 'auth/invalid-email': return 'That email address looks invalid.'
+    case 'auth/weak-password': return 'Password should be at least 8 characters.'
+    default: return 'Could not create your account. Please try again.'
+  }
 }
 </script>
 
@@ -57,4 +110,15 @@ async function register() {
 .auth-form { display:flex; flex-direction:column; gap:16px; }
 .auth-footer { text-align:center; margin-top:20px; font-size:14px; color:var(--gray); }
 .auth-footer a { color:var(--purple); font-weight:600; }
+
+.auth-divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--gray-light); font-size:13px; }
+.auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.btn-google {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:12px 16px; border-radius:var(--radius-md); border:1.5px solid var(--border);
+  background:#fff; font-size:15px; font-weight:500; cursor:pointer; transition:all var(--t);
+}
+.btn-google:hover:not(:disabled) { border-color:var(--purple); background:var(--cream); }
+.btn-google:disabled { opacity:.7; cursor:wait; }
 </style>

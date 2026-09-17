@@ -83,8 +83,12 @@
 </template>
 
 <script setup lang="ts">
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+import { doc, getDoc } from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
+
+const auth = useFirebaseAuth()!
+const db = useFirestore()
+const user = useCurrentUser()
 const cartStore = useCartStore()
 const { success } = useToast()
 
@@ -95,15 +99,17 @@ const userRef = ref<HTMLElement>()
 
 const initials = computed(() => (user.value?.email ?? '').slice(0, 2).toUpperCase())
 
-onMounted(async () => {
-  if (user.value) {
-    const { data } = await supabase.from('profiles').select('role').eq('id', user.value.id).maybeSingle()
-    isAdmin.value = data?.role === 'admin'
+watch(user, async (u) => {
+  if (u) {
+    const snap = await getDoc(doc(db, 'users', u.uid))
+    isAdmin.value = snap.data()?.role === 'admin'
+  } else {
+    isAdmin.value = false
   }
-})
+}, { immediate: true })
 
 async function logout() {
-  await supabase.auth.signOut()
+  await signOut(auth)
   menuOpen.value = false
   mobileOpen.value = false
   success('Signed out')

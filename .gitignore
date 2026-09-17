@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# Firebase Admin service account key (used only by scripts/migrate-from-supabase.mjs)
+scripts/service-account.json

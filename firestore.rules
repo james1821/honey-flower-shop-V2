@@ -1,0 +1,81 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // public read, admin write
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /delivery_options/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /gallery_items/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /popup_banner/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // promo codes: public read, admin write, plus a narrow update for redeeming a code
+    match /promo_codes/{id} {
+      allow get: if true;
+      allow list: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() ||
+        (isSignedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uses_count']) &&
+          request.resource.data.uses_count == resource.data.uses_count + 1);
+    }
+
+    // user profiles
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid) && request.resource.data.role == 'customer';
+      allow update: if isAdmin() ||
+        (isOwner(uid) && request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+      allow list: if isAdmin();
+    }
+
+    // orders: owner or admin can read, guest/owner can create, admin can update
+    match /orders/{id} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.customer_id == request.auth.uid);
+      allow create: if request.resource.data.customer_id == null ||
+        (isSignedIn() && request.resource.data.customer_id == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // order number counter
+    match /counters/{id} {
+      allow read, write: if true;
+    }
+  }
+}
