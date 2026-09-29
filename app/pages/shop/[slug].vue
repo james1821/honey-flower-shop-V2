@@ -3,14 +3,14 @@
     <div class="container product-inner">
    
       <div class="product-gallery">
-        <img :src="product.images[activeImg] || ''" :alt="product.name" class="main-img" />
+        <img :src="cldPad(product.images[activeImg], 900, 900) || ''" :alt="product.name" class="main-img" />
         <div v-if="product.images.length > 1" class="thumbs">
           <button
             v-for="(img, i) in product.images" :key="i"
             class="thumb" :class="{ active: activeImg === i }"
             @click="activeImg = i"
           >
-            <img :src="img" :alt="`${product.name} ${i+1}`" />
+            <img :src="cldPad(img, 160, 160)" :alt="`${product.name} ${i+1}`" />
           </button>
         </div>
       </div>

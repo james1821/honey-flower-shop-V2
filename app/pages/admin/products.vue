@@ -15,7 +15,7 @@
           <tr v-for="p in products" :key="p.id">
             <td>
               <div class="product-cell">
-                <img :src="p.images[0]" :alt="p.name" class="p-thumb" />
+                <img :src="cldPad(p.images[0], 100, 100)" :alt="p.name" class="p-thumb" />
                 <div>
                   <p class="p-name">{{ p.name }}</p>
                 <p class="p-cat">{{ p.category?.name }}</p>

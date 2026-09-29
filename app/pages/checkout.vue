@@ -102,7 +102,7 @@
             <!-- Items -->
             <div class="oi-list">
               <div v-for="(item, i) in cart.items" :key="i" class="oi">
-                <img :src="item.product.images[0]" :alt="item.product.name" class="oi-img" />
+                <img :src="cldPad(item.product.images[0], 120, 120)" :alt="item.product.name" class="oi-img" />
                 <div class="oi-meta">
                   <p class="oi-name">{{ item.product.name }}</p>
                   <p v-if="item.variant" class="oi-sub">{{ item.variant.name }}</p>

@@ -1,7 +1,7 @@
 <template>
   <NuxtLink :to="`/shop/${product.slug}`" class="product-card">
     <div class="card-img-wrap">
-      <img :src="product.images[0] || '/placeholder.jpg'" :alt="product.name" class="card-img" loading="lazy" />
+      <img :src="cldPad(product.images[0], 600, 600) || '/placeholder.jpg'" :alt="product.name" class="card-img" loading="lazy" />
       <div class="card-badges">
         <span v-if="product.is_featured" class="badge badge-gold">Featured</span>
         <span v-if="product.sale_price" class="badge badge-error">Sale</span>

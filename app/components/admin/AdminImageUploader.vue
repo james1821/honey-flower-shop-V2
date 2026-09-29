@@ -3,7 +3,7 @@
     <!-- Multiple images (e.g. product gallery) -->
     <div v-if="multiple" class="img-grid">
       <div v-for="(url, idx) in listValue" :key="url + idx" class="img-slot filled">
-        <img :src="url" alt="" />
+        <img :src="cldPad(url, 200, 200)" alt="" />
         <button type="button" class="remove-btn" title="Remove" @click="removeAt(idx)">✕</button>
       </div>
       <label v-if="listValue.length < max" class="img-slot add-slot" :class="{ busy: uploading }">
@@ -18,7 +18,7 @@
     <!-- Single image (e.g. gallery photo, popup banner) -->
     <div v-else class="single-wrap">
       <div v-if="singleValue" class="img-slot filled large">
-        <img :src="singleValue" alt="" />
+        <img :src="cldPad(singleValue, 280, 200)" alt="" />
         <button type="button" class="remove-btn" title="Remove" @click="clearSingle">✕</button>
       </div>
       <label v-else class="img-slot add-slot large" :class="{ busy: uploading }">

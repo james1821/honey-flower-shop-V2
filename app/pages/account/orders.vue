@@ -23,7 +23,7 @@
           </div>
           <div class="order-items">
             <div v-for="item in order.items" :key="item.id" class="oi">
-              <img :src="item.product_snapshot?.images?.[0] || ''" :alt="item.product_snapshot?.name" class="oi-img" />
+              <img :src="cldPad(item.product_snapshot?.images?.[0], 110, 110)" :alt="item.product_snapshot?.name" class="oi-img" />
               <div class="oi-meta">
                 <p>{{ item.product_snapshot?.name }}</p>
                 <p v-if="item.money_amount" class="money-label">+ {{ fmt(item.money_amount) }} cash inside</p>

@@ -84,7 +84,7 @@
           <div>
             <p class="dl" style="margin-bottom:8px">Items</p>
             <div v-for="item in selected.items" :key="item.id" class="order-item-row">
-              <img :src="item.product_snapshot?.images?.[0]" :alt="item.product_snapshot?.name" class="oi-img" />
+              <img :src="cldPad(item.product_snapshot?.images?.[0], 100, 100)" :alt="item.product_snapshot?.name" class="oi-img" />
               <div style="flex:1">
                 <p style="font-size:14px;font-weight:500">{{ item.product_snapshot?.name }}</p>
                 <p v-if="item.money_amount" style="font-size:12px;color:var(--gold);font-weight:600">Cash inside: {{ fmt(item.money_amount) }}</p>
