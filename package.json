@@ -16,6 +16,7 @@
     "browser-image-compression": "^2.0.2",
     "dayjs": "^1.11.11",
     "firebase": "^12.19.0",
+    "firebase-admin": "^13.10.0",
     "nuxt": "^4.4.2",
     "nuxt-vuefire": "^1.1.2",
     "pinia": "^2.1.7",
