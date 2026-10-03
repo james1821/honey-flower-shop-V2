@@ -28,29 +28,31 @@
           v-for="(item, i) in filtered.slice(0, 9)"
           :key="item.id"
           class="collage-cell"
-          :class="getCellClass(i)"
+          :class="`tilt-${i % 5}`"
           @click="openLightbox(i)"
         >
-          <img :src="item.image_url" :alt="item.caption ?? 'Gallery'" class="collage-img" loading="lazy" />
-          <div class="collage-overlay">
-            <div class="overlay-content">
-              <p v-if="item.caption" class="overlay-caption">{{ item.caption }}</p>
-              <div v-if="item.customer_name" class="overlay-customer">
-                <span class="customer-name">— {{ item.customer_name }}</span>
-                <div v-if="item.rating" class="stars">
-                  <span v-for="s in item.rating" :key="s">★</span>
+          <div class="collage-frame">
+            <img :src="item.image_url" :alt="item.caption ?? 'Gallery'" class="collage-img" loading="lazy" />
+            <div class="collage-overlay">
+              <div class="overlay-content">
+                <p v-if="item.caption" class="overlay-caption">{{ item.caption }}</p>
+                <div v-if="item.customer_name" class="overlay-customer">
+                  <span class="customer-name">— {{ item.customer_name }}</span>
+                  <div v-if="item.rating" class="stars">
+                    <span v-for="s in item.rating" :key="s">★</span>
+                  </div>
                 </div>
               </div>
             </div>
+            <span v-if="item.type === 'customer'" class="customer-badge">📸 Customer</span>
           </div>
-          <span v-if="item.type === 'customer'" class="customer-badge">📸 Customer</span>
         </div>
       </div>
 
       <!-- Skeleton loading -->
       <div v-else-if="loading" class="collage-grid">
-        <div v-for="n in 6" :key="n" class="collage-cell" :class="getCellClass(n-1)">
-          <div class="skeleton" style="width:100%;height:100%"></div>
+        <div v-for="n in 6" :key="n" class="collage-cell">
+          <div class="collage-frame"><div class="skeleton" style="width:100%;aspect-ratio:3/4"></div></div>
         </div>
       </div>
 
@@ -64,7 +66,7 @@
             class="slide"
             @click="openLightbox(filtered.indexOf(item))"
           >
-            <img :src="item.image_url" :alt="item.caption ?? ''" class="slide-img" loading="lazy" />
+            <img :src="cldPad(item.image_url, 280, 360)" :alt="item.caption ?? ''" class="slide-img" loading="lazy" />
             <div class="slide-info">
               <p v-if="item.caption" class="slide-caption">{{ item.caption }}</p>
               <p v-if="item.customer_name" class="slide-customer">— {{ item.customer_name }}</p>
@@ -131,12 +133,6 @@ onMounted(async () => {
   loading.value = false
 })
 
-// Collage layout pattern — varies cell sizes
-function getCellClass(i: number): string {
-  const pattern = ['tall', 'normal', 'normal', 'wide', 'normal', 'normal', 'normal', 'tall', 'normal']
-  return pattern[i % pattern.length] ?? 'normal'
-}
-
 function openLightbox(index: number) {
   lbIndex.value = index
   lightboxOpen.value = true
@@ -190,37 +186,51 @@ function onKey(e: KeyboardEvent) {
 }
 .pill:hover, .pill.active { background: var(--purple); color: #fff; border-color: var(--purple); }
 
-/* ── Collage Grid ────────────────────────────────────────────────── */
+/* ── Collage Grid: Pinterest-style masonry, keeps portrait photos whole ── */
 .collage-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 200px;
-  gap: 12px;
+  column-count: 4; column-gap: 20px;
 }
-@media(max-width: 900px) { .collage-grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width: 500px) { .collage-grid { grid-template-columns: 1fr 1fr; grid-auto-rows: 160px; } }
+@media(max-width: 900px) { .collage-grid { column-count: 3; column-gap: 16px; } }
+@media(max-width: 600px) { .collage-grid { column-count: 2; column-gap: 12px; } }
 
 .collage-cell {
-  position: relative; border-radius: var(--radius-lg);
-  overflow: hidden; cursor: pointer;
-  background: var(--cream-dark);
+  break-inside: avoid; margin-bottom: 20px; cursor: pointer;
+  transition: transform .25s var(--ease);
 }
-.collage-cell.tall  { grid-row: span 2; }
-.collage-cell.wide  { grid-column: span 2; }
+@media(max-width: 600px) { .collage-cell { margin-bottom: 12px; } }
+.collage-cell:hover { transform: translateY(-4px); }
+
+/* slight alternating tilt per card for a scrapbook feel, straightens on hover */
+.tilt-0 { transform: rotate(-1.2deg); } .tilt-0:hover { transform: rotate(0deg) translateY(-4px); }
+.tilt-1 { transform: rotate(1deg); }    .tilt-1:hover { transform: rotate(0deg) translateY(-4px); }
+.tilt-2 { transform: rotate(-.6deg); }  .tilt-2:hover { transform: rotate(0deg) translateY(-4px); }
+.tilt-3 { transform: rotate(.8deg); }   .tilt-3:hover { transform: rotate(0deg) translateY(-4px); }
+.tilt-4 { transform: rotate(-.3deg); }  .tilt-4:hover { transform: rotate(0deg) translateY(-4px); }
+
+.collage-frame {
+  position: relative; border-radius: var(--radius-lg);
+  overflow: hidden; background: #fff;
+  padding: 8px 8px 0; box-shadow: var(--shadow-md);
+}
 
 .collage-img {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%; height: auto; display: block;
+  border-radius: calc(var(--radius-lg) - 6px) calc(var(--radius-lg) - 6px) 0 0;
   transition: transform .5s var(--ease);
 }
-.collage-cell:hover .collage-img { transform: scale(1.06); }
+.collage-cell:hover .collage-img { transform: scale(1.03); }
 
 .collage-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%);
+  position: absolute; left: 8px; right: 8px; bottom: 0; top: 8px;
+  background: linear-gradient(to top, rgba(0,0,0,.72) 0%, transparent 55%);
   opacity: 0; transition: opacity var(--t);
   display: flex; align-items: flex-end; padding: 16px;
+  border-radius: calc(var(--radius-lg) - 6px) calc(var(--radius-lg) - 6px) 0 0;
 }
 .collage-cell:hover .collage-overlay { opacity: 1; }
+
+/* the "paper" strip at the bottom of the frame, like a Polaroid caption area */
+.collage-frame::after { content: ''; display: block; height: 10px; }
 
 .overlay-content { color: #fff; }
 .overlay-caption { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
@@ -251,7 +261,7 @@ function onKey(e: KeyboardEvent) {
   transition: transform var(--t), box-shadow var(--t);
 }
 .slide:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-.slide-img { width: 100%; height: 200px; object-fit: cover; }
+.slide-img { width: 100%; height: 360px; object-fit: cover; }
 .slide-info { padding: 12px 14px; }
 .slide-caption { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
 .slide-customer { font-size: 13px; color: var(--gray); }
