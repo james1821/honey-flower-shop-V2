@@ -3,7 +3,7 @@ import {
   collection, query, where, orderBy, limit, getDocs,
 } from 'firebase/firestore'
 import { docToProduct, docToCategory, docToDeliveryOption } from '~/utils/firestore-mappers'
-import {s
+import {
   collection, query, where, orderBy, limit, getDocs,
 } from 'firebase/firestore'
 import { docToProduct, docToCategory, docToDeliveryOption } from '~/utils/firestore-mappers'
