@@ -6,7 +6,7 @@
       <p class="auth-sub">Sign in to track your orders and more</p>
 
       <form @submit.prevent="login" class="auth-form">
-        <div class="form-group">
+        <div class="form-group">s
           <label class="form-label">Email</label>
           <input v-model="email" type="email" class="form-input" placeholder="you@example.com" required />
         </div>

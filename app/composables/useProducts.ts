@@ -3,8 +3,13 @@ import {
   collection, query, where, orderBy, limit, getDocs,
 } from 'firebase/firestore'
 import { docToProduct, docToCategory, docToDeliveryOption } from '~/utils/firestore-mappers'
+import {s
+  collection, query, where, orderBy, limit, getDocs,
+} from 'firebase/firestore'
+import { docToProduct, docToCategory, docToDeliveryOption } from '~/utils/firestore-mappers'
 
 export function useProducts() {
+  const db = useFirestore()
   const db = useFirestore()
 
   async function getProducts(opts?: { type?: ProductType; featured?: boolean; search?: string; page?: number; pageSize?: number }) {
@@ -45,6 +50,14 @@ export function useProducts() {
     } catch (error: any) {
       return { data: null, error: error?.message ?? String(error) }
     }
+    try {
+      const q = query(collection(db, 'products'), where('slug', '==', slug), where('is_active', '==', true), limit(1))
+      const snap = await getDocs(q)
+      if (snap.empty) return { data: null, error: null }
+      return { data: docToProduct(snap.docs[0]!), error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function getCategories() {
@@ -55,9 +68,23 @@ export function useProducts() {
     } catch (error: any) {
       return { data: null, error: error?.message ?? String(error) }
     }
+    try {
+      const q = query(collection(db, 'categories'), where('is_active', '==', true), orderBy('sort_order'))
+      const snap = await getDocs(q)
+      return { data: snap.docs.map(docToCategory) as Category[], error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
   }
 
   async function getDeliveryOptions() {
+    try {
+      const q = query(collection(db, 'delivery_options'), where('is_active', '==', true))
+      const snap = await getDocs(q)
+      return { data: snap.docs.map(docToDeliveryOption) as DeliveryOption[], error: null }
+    } catch (error: any) {
+      return { data: null, error: error?.message ?? String(error) }
+    }
     try {
       const q = query(collection(db, 'delivery_options'), where('is_active', '==', true))
       const snap = await getDocs(q)

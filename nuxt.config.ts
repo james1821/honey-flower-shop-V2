@@ -1,4 +1,9 @@
 export default defineNuxtConfig({
+  compatibilityDate: '2026-09-29',
+  
+  // Disable Server-Side Rendering (runs as a Client-Side SPA)
+  ssr: false,
+
   devtools: { enabled: true },
   modules: ['nuxt-vuefire', '@pinia/nuxt', '@vueuse/nuxt'],
 
@@ -31,11 +36,12 @@ export default defineNuxtConfig({
   typescript: { strict: true },
   app: {
     head: {
-      title: 'Handmade By Honey — Flowers & Gifts ',
+      title: 'Handmade By Honey — Flowers & Gifts',
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'icon', type: 'image/jpeg', href: '/logo.jpg' },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap',

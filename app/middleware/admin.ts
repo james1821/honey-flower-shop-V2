@@ -1,5 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore'
 
+import { doc, getDoc } from 'firebase/firestore'
+
 export default defineNuxtRouteMiddleware(async (to) => {
   if (!to.path.startsWith('/admin')) return
   // wait for auth state before checking
