@@ -1,4 +1,3 @@
-import { doc, getDoc } from 'firebase/firestore'
 
 import { doc, getDoc } from 'firebase/firestore'
 

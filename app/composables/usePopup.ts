@@ -1,9 +1,6 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { docToPopup } from '~/utils/firestore-mappers'
 
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { docToPopup } from '~/utils/firestore-mappers'
-
 export interface PopupBanner {
   id: string
   image_url: string
@@ -17,7 +14,6 @@ const POPUP_DOC_ID = 'main'
 
 export function usePopup() {
   const db = useFirestore()
-  const db = useFirestore()
   const SESSION_KEY = 'florette_popup_seen'
 
   async function getPopup() {
@@ -28,23 +24,9 @@ export function usePopup() {
     } catch (error: any) {
       return { data: null, error: error?.message ?? String(error) }
     }
-    try {
-      const snap = await getDoc(doc(db, 'popup_banner', POPUP_DOC_ID))
-      if (!snap.exists() || !snap.data().is_active) return { data: null, error: null }
-      return { data: docToPopup(snap), error: null }
-    } catch (error: any) {
-      return { data: null, error: error?.message ?? String(error) }
-    }
   }
 
   async function adminGetPopup() {
-    try {
-      const snap = await getDoc(doc(db, 'popup_banner', POPUP_DOC_ID))
-      if (!snap.exists()) return { data: null, error: null }
-      return { data: docToPopup(snap), error: null }
-    } catch (error: any) {
-      return { data: null, error: error?.message ?? String(error) }
-    }
     try {
       const snap = await getDoc(doc(db, 'popup_banner', POPUP_DOC_ID))
       if (!snap.exists()) return { data: null, error: null }
@@ -66,17 +48,6 @@ export function usePopup() {
     }
   }
 
-    try {
-      const { id, ...rest } = payload
-      const ref = doc(db, 'popup_banner', POPUP_DOC_ID)
-      await setDoc(ref, { ...rest, updated_at: serverTimestamp() }, { merge: true })
-      const snap = await getDoc(ref)
-      return { data: docToPopup(snap), error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error?.message ?? String(error) } }
-    }
-  }
-
   function hasSeenPopup(): boolean {
     if (typeof sessionStorage === 'undefined') return false
     return sessionStorage.getItem(SESSION_KEY) === '1'
@@ -85,9 +56,7 @@ export function usePopup() {
   function markPopupSeen() {
     if (typeof sessionStorage === 'undefined') return
     sessionStorage.setItem(SESSION_KEY, '1')
-    sessionStorage.setItem(SESSION_KEY, '1')
   }
 
   return { getPopup, adminGetPopup, adminSavePopup, hasSeenPopup, markPopupSeen }
 }
-

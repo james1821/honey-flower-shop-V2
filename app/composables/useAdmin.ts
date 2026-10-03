@@ -357,19 +357,6 @@ export function useAdmin() {
     } catch (error: any) {
       return { data: null, error: { message: error?.message ?? String(error) } }
     }
-    try {
-      const { id, ...rest } = d
-      if (id) {
-        await updateDoc(doc(db, 'delivery_options', id), rest)
-        const snap = await getDoc(doc(db, 'delivery_options', id))
-        return { data: docToDeliveryOption(snap), error: null }
-      }
-      const ref = await addDoc(collection(db, 'delivery_options'), rest)
-      const snap = await getDoc(ref)
-      return { data: docToDeliveryOption(snap), error: null }
-    } catch (error: any) {
-      return { data: null, error: { message: error?.message ?? String(error) } }
-    }
   }
 
   return {
